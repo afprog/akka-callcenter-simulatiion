@@ -9,20 +9,21 @@ import akka.event.LoggingAdapter;
 import com.almundo.alzate.test.messages.Messages;
 
 import java.time.Duration;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class CallReceiverActor extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
     private final String employeeType;
+    private int id;
 
-    public CallReceiverActor(String employeeType) {
+    public CallReceiverActor(String employeeType, int id) {
         this.employeeType = employeeType;
+        this.id = id;
     }
 
-    public static Props props(String employeeType) {
-        return Props.create(CallReceiverActor.class, employeeType);
+    public static Props props(String employeeType, int id) {
+        return Props.create(CallReceiverActor.class, employeeType, id);
     }
 
     private void simulateCall(ActorRef sender){
