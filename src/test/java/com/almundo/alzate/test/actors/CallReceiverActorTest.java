@@ -19,13 +19,12 @@ public class CallReceiverActorTest {
 
 
     @Test
-    public void testReplyWithEmptyReadingIfNoTemperatureIsKnown() {
+    public void shouldResponseCallFinishedMessageAfterSimulateCallSuccessfull() {
         TestKit probe = new TestKit(system);
-        ActorRef operatorActor = system.actorOf(CallReceiverActor.props("Operator"));
-        operatorActor.tell(new Messages.CallReceived(), probe.getRef());
+        ActorRef operatorActor = system.actorOf(CallReceiverActor.props("Operator", 1));
+        operatorActor.tell(new Messages.CallReceived(0), probe.getRef());
         Messages.CallFinished response = probe.expectMsgClass(new FiniteDuration(10,TimeUnit.SECONDS),Messages.CallFinished.class);
         assertEquals("Operator", response.getAttendedBy());
-
     }
 
 }
