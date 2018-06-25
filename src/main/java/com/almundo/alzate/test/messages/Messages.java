@@ -3,7 +3,7 @@ package com.almundo.alzate.test.messages;
 import akka.actor.ActorRef;
 
 public class Messages {
-    public static final class CallReceived{
+    public static final class CallReceived {
         private int callId;
 
         public CallReceived(int callId) {
@@ -15,7 +15,7 @@ public class Messages {
         }
     }
 
-    public static final class CallFinished{
+    public static final class CallFinished {
         private String attendedBy;
         private long delay;
 
@@ -33,7 +33,7 @@ public class Messages {
         }
     }
 
-    public static final class ChangeReference{
+    public static final class ChangeReference {
         private ActorRef reference;
 
         public ChangeReference(ActorRef reference) {
