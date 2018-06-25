@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class DispatcherActorTest {
 
@@ -23,7 +23,7 @@ public class DispatcherActorTest {
         TestKit probe = new TestKit(system);
         ActorRef operatorDispatcherActor = system.actorOf(DispatcherActor.props(1, "Operator", Optional.empty()));
         operatorDispatcherActor.tell(new Messages.CallReceived(0), probe.getRef());
-        Messages.CallFinished response = probe.expectMsgClass(new FiniteDuration(10,TimeUnit.SECONDS),Messages.CallFinished.class);
+        Messages.CallFinished response = probe.expectMsgClass(new FiniteDuration(10, TimeUnit.SECONDS), Messages.CallFinished.class);
         assertEquals("Operator 0", response.getAttendedBy());
     }
 
@@ -31,7 +31,7 @@ public class DispatcherActorTest {
     public void shouldResponse10MessagesFor10MEssagesSentConcurrently() {
         int numberOfMessages = 10;
         List<Messages.CallReceived> messages = new ArrayList<>();
-        for(int i = 0; i < numberOfMessages; i++){
+        for (int i = 0; i < numberOfMessages; i++) {
             messages.add(new Messages.CallReceived(i));
         }
         TestKit probe = new TestKit(system);
@@ -39,7 +39,7 @@ public class DispatcherActorTest {
         ActorRef supervisorDispatcherActor = system.actorOf(DispatcherActor.props(5, "Supervisor", Optional.of(directorDispatcherActor)));
         ActorRef operatorDispatcherActor = system.actorOf(DispatcherActor.props(5, "Operator", Optional.of(supervisorDispatcherActor)));
         messages.parallelStream().forEach(message -> operatorDispatcherActor.tell(message, probe.getRef()));
-        List<Object> responses = probe.receiveN(numberOfMessages,new FiniteDuration(10,TimeUnit.SECONDS));
+        List<Object> responses = probe.receiveN(numberOfMessages, new FiniteDuration(10, TimeUnit.SECONDS));
         assertEquals(responses.size(), numberOfMessages);
     }
 
@@ -47,7 +47,7 @@ public class DispatcherActorTest {
     public void shouldResponseFor25MEssagesSentConcurrently() {
         int numberOfMessages = 25;
         List<Messages.CallReceived> messages = new ArrayList<>();
-        for(int i = 0; i < numberOfMessages; i++){
+        for (int i = 0; i < numberOfMessages; i++) {
             messages.add(new Messages.CallReceived(i));
         }
         TestKit probe = new TestKit(system);
@@ -56,7 +56,7 @@ public class DispatcherActorTest {
         ActorRef operatorDispatcherActor = system.actorOf(DispatcherActor.props(5, "Operator", Optional.of(supervisorDispatcherActor)));
         directorDispatcherActor.tell(new Messages.ChangeReference(operatorDispatcherActor), probe.getRef());
         messages.parallelStream().forEach(message -> operatorDispatcherActor.tell(message, probe.getRef()));
-        List<Object> responses = probe.receiveN(numberOfMessages,new FiniteDuration(20,TimeUnit.SECONDS));
+        List<Object> responses = probe.receiveN(numberOfMessages, new FiniteDuration(20, TimeUnit.SECONDS));
         assertEquals(responses.size(), numberOfMessages);
     }
 
@@ -65,7 +65,7 @@ public class DispatcherActorTest {
         int numberOfMessages = 1000;
         int workers = 100;
         List<Messages.CallReceived> messages = new ArrayList<>();
-        for(int i = 0; i < numberOfMessages; i++){
+        for (int i = 0; i < numberOfMessages; i++) {
             messages.add(new Messages.CallReceived(i));
         }
         ActorRef directorDispatcherActor = system.actorOf(DispatcherActor.props(workers, "Director", Optional.empty()));
@@ -74,7 +74,7 @@ public class DispatcherActorTest {
         ActorRef operatorDispatcherActor = system.actorOf(DispatcherActor.props(workers, "Operator", Optional.of(supervisorDispatcherActor)));
         directorDispatcherActor.tell(new Messages.ChangeReference(operatorDispatcherActor), probe.getRef());
         messages.parallelStream().forEach(message -> operatorDispatcherActor.tell(message, probe.getRef()));
-        List<Object> responses = probe.receiveN(numberOfMessages,new FiniteDuration(40,TimeUnit.SECONDS));
+        List<Object> responses = probe.receiveN(numberOfMessages, new FiniteDuration(40, TimeUnit.SECONDS));
         assertEquals(responses.size(), numberOfMessages);
     }
 }

@@ -26,24 +26,22 @@ public class CallReceiverActor extends AbstractActor {
         return Props.create(CallReceiverActor.class, employeeType, id);
     }
 
-    private void simulateCall(ActorRef sender){
+    private void simulateCall(ActorRef sender) {
         ActorSystem system = getContext().getSystem();
         long delay = ThreadLocalRandom.current().nextLong(5000, 10000);
         system.scheduler().scheduleOnce(Duration.ofMillis(delay),
-                getSelf(), new Messages.CallFinished(employeeType + " " + id,delay), system.dispatcher(), sender);
+                getSelf(), new Messages.CallFinished(employeeType + " " + id, delay), system.dispatcher(), sender);
     }
-
-
 
 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(Messages.CallReceived.class, r ->  {
-                    log.info("Call Received by {} with id {}",employeeType,id);
+                .match(Messages.CallReceived.class, r -> {
+                    log.info("Call Received by {} with id {}", employeeType, id);
                     simulateCall(getSender());
                 })
-                .match(Messages.CallFinished.class, r ->  getSender().tell(r, getSelf()))
+                .match(Messages.CallFinished.class, r -> getSender().tell(r, getSelf()))
                 .build();
     }
 }
