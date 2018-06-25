@@ -17,6 +17,7 @@ public class DispatcherActor extends AbstractActor {
     private int workers;
     private String workersType;
     private Optional<ActorRef> nextDispatcher;
+    private ActorRef responseActor;
 
     private Queue<ActorRef>  workersQueue = new ConcurrentLinkedQueue<>();
 
@@ -25,13 +26,13 @@ public class DispatcherActor extends AbstractActor {
         this.workersType = workersType;
         this.nextDispatcher = nextDispatcher;
         for(int i=0; i< workers ; i++){
-            ActorRef worker = getContext().getSystem().actorOf(CallReceiverActor.props("Operator", i));
+            ActorRef worker = getContext().getSystem().actorOf(CallReceiverActor.props(workersType, i));
             workersQueue.add(worker);
         }
         log.info("Workers size = {}", workersQueue.size());
     }
 
-    public static Props props(int workers, String workersType, ActorRef nextDispatcher) {
+    public static Props props(int workers, String workersType, Optional<ActorRef> nextDispatcher) {
         return Props.create(DispatcherActor.class, workers, workersType, nextDispatcher);
     }
 
@@ -39,8 +40,9 @@ public class DispatcherActor extends AbstractActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(Messages.CallReceived.class, r ->  {
+                    responseActor = getSender();
                     if(workersQueue.size() > 0){
-                        workersQueue.peek().tell(r,getSelf());
+                        workersQueue.poll().tell(r,getSelf());
                     }else{
                         if(nextDispatcher.isPresent()){
                             nextDispatcher.get().forward(r,getContext());
@@ -50,9 +52,13 @@ public class DispatcherActor extends AbstractActor {
                     }
                 })
                 .match(Messages.CallFinished.class, r ->  {
-                    System.out.println("CallFinished after " + r.getDelay() + " by " + r.getAttendedBy());
+                    log.info("CallFinished after {} by {}",r.getDelay(),r.getAttendedBy());
                     workersQueue.add(getSender());
-                    getSender().tell(r, getSelf());//TODO change sender by correct saving the reference to original message sender
+                    responseActor.tell(r,getSelf());
+                })
+                .match(Messages.ChangeReference.class, r ->  {
+                    log.info("Change reference ");
+                    nextDispatcher = Optional.of(r.getReference());
                 })
                 .build();
     }
